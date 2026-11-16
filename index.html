@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra cứu điểm thi - Khối 6</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 15px;
+            display: flex; justify-content: center; align-items: flex-start;
+        }
+        .app {
+            background: white; border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            padding: 22px 18px; max-width: 640px; width: 100%;
+            animation: slideIn 0.4s ease-out;
+        }
+        @keyframes slideIn { from {opacity:0;transform:translateY(-15px);} to {opacity:1;transform:translateY(0);} }
+        h1 { text-align: center; color: #333; font-size: 20px; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #888; font-size: 12px; margin-bottom: 18px; }
+        .school-name {
+            text-align: center; font-weight: 700; color: #667eea;
+            font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .section-title {
+            font-size: 13px; font-weight: 700; color: #667eea;
+            margin: 16px 0 10px 0; padding: 8px 10px;
+            background: linear-gradient(90deg, #f0f2ff, transparent);
+            border-left: 3px solid #667eea; border-radius: 6px;
+        }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-weight: 600; color: #555; margin-bottom: 5px; font-size: 12.5px; }
+
+        input[type="text"] {
+            width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0;
+            border-radius: 10px; font-size: 17px; transition: all 0.3s ease;
+            background: #fafafa; color: #333; font-family: inherit;
+            letter-spacing: 1px; text-align: center;
+        }
+        input[type="text"]:focus {
+            outline: none; border-color: #667eea; background: white;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+        }
+        input[type="text"].invalid {
+            border-color: #f44336;
+            box-shadow: 0 0 0 4px rgba(244,67,54,0.1);
+        }
+
+        .hint {
+            font-size: 11.5px; color: #999; margin-top: 8px;
+            line-height: 1.6; text-align: center;
+        }
+        .hint strong { color: #667eea; }
+        .hint .example {
+            display: inline-block; background: #f0f2ff; color: #667eea;
+            padding: 2px 8px; border-radius: 6px; font-weight: 700;
+            margin: 2px 2px; font-family: 'Courier New', monospace;
+        }
+
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: all 0.3s ease; letter-spacing: 0.3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; margin-top: 10px;
+        }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.4); }
+        .btn:disabled {
+            opacity: 0.45; cursor: not-allowed;
+            background: #b0b0b0;
+            box-shadow: none; transform: none;
+        }
+
+        .result-area {
+            display: none;
+            margin-top: 18px;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .result-area.show { display: block; }
+        @keyframes fadeIn { from {opacity:0;transform:translateY(-8px);} to {opacity:1;transform:translateY(0);} }
+
+        .student-info {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border-radius: 14px; padding: 16px 18px;
+            margin-bottom: 16px;
+        }
+        .student-info .label-small {
+            font-size: 11px; opacity: 0.85; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 4px;
+        }
+        .student-info .fullname {
+            font-size: 20px; font-weight: 800; line-height: 1.3;
+        }
+        .student-info .dob-line {
+            font-size: 12px; opacity: 0.9; margin-top: 4px;
+        }
+
+        .score-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            margin-bottom: 14px;
+        }
+        .score-card {
+            background: #f8f9ff; border: 2px solid #e0e4f5;
+            border-radius: 12px; padding: 12px 6px; text-align: center;
+            transition: all 0.25s ease;
+        }
+        .score-card:hover { border-color: #667eea; transform: translateY(-2px); }
+        .score-card .subject {
+            font-size: 11px; font-weight: 700; color: #667eea;
+            text-transform: uppercase; letter-spacing: 0.2px;
+            margin-bottom: 6px; line-height: 1.2; min-height: 26px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .score-card .score {
+            font-size: 24px; font-weight: 800; color: #333;
+            line-height: 1.1;
+        }
+        .score-card .score.empty { color: #bbb; font-size: 16px; }
+        .score-card .score.mien { color: #f39c12; font-size: 15px; font-weight: 800; }
+        .score-card .score.chuacapnhat { color: #e74c3c; font-size: 12px; font-weight: 700; }
+        .score-card .rank {
+            display: inline-block; margin-top: 8px;
+            font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            letter-spacing: 0.2px;
+        }
+        .score-card .rank.empty {
+            background: #e0e0e0; color: #999;
+        }
+
+        .eval-title {
+            font-size: 12px; font-weight: 700; color: #667eea;
+            margin: 16px 0 8px 0; text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .eval-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+        }
+        .eval-item {
+            background: #f8f9ff; border: 2px solid #e0e4f5;
+            border-radius: 10px; padding: 10px 6px; text-align: center;
+        }
+        .eval-item .subject {
+            font-size: 11px; font-weight: 700; color: #667eea;
+            margin-bottom: 5px; line-height: 1.2;
+        }
+        .eval-item .value {
+            font-size: 15px; font-weight: 800;
+        }
+        .eval-item .value.dat { color: #2e7d32; }
+        .eval-item .value.cd { color: #e67e22; }
+        .eval-item .value.mien { color: #f39c12; }
+        .eval-item .value.chuacapnhat { color: #e74c3c; font-size: 12px; }
+
+        .not-found {
+            background: #fff3f3; border: 2px solid #ffcdd2;
+            border-radius: 12px; padding: 18px; text-align: center;
+            color: #c62828; font-weight: 600; font-size: 14px;
+        }
+
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            padding: 12px 22px; border-radius: 12px; color: white;
+            font-weight: 600; font-size: 14px; z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.4s ease; max-width: 90%;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { background: linear-gradient(135deg, #4CAF50, #45a049); }
+        .toast.error { background: linear-gradient(135deg, #f44336, #d32f2f); }
+        .toast.info { background: linear-gradient(135deg, #667eea, #764ba2); }
+
+        @media (max-width: 480px) {
+            .score-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+            .score-card { padding: 10px 4px; }
+            .score-card .score { font-size: 20px; }
+            .score-card .subject { font-size: 10px; min-height: 22px; }
+            .score-card .rank { font-size: 9px; padding: 2px 6px; }
+            .score-card .score.chuacapnhat { font-size: 11px; }
+            .student-info .fullname { font-size: 17px; }
+            input[type="text"] { font-size: 16px; }
+            .eval-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+            .eval-item { padding: 8px 4px; }
+            .eval-item .value { font-size: 13px; }
+            .eval-item .value.chuacapnhat { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="school-name">Trường THCS Tây Thái Ninh</div>
+        <h1>🔍 TRA CỨU ĐIỂM THI</h1>
+        <p class="subtitle">Kỳ thi: PH1 - Kiểm tra giữa HK1 - Khối 6 (Năm học 2026-2027)</p>
+
+        <form id="searchForm">
+            <div class="section-title">📅 Nhập ngày tháng năm sinh</div>
+            <div class="form-group">
+                <label for="dobInput">Ngày sinh của học sinh</label>
+                <input type="text" id="dobInput" placeholder="01/01/2015" inputmode="numeric" autocomplete="off" maxlength="10">
+            </div>
+            <div class="hint">
+                Có thể nhập theo 1 trong 3 cách:<br>
+                <span class="example">01/01/2015</span> hoặc
+                <span class="example">01-01-2015</span> hoặc
+                <span class="example">01012015</span>
+            </div>
+
+            <button type="submit" class="btn" id="btnSearch">TRA CỨU ĐIỂM</button>
+        </form>
+
+        <div class="result-area" id="resultArea"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const TOTAL = 40;
+
+        // ===== DỮ LIỆU CHUẨN 100% THEO FILE WORD =====
+        // 12 cột: Toan | Van | Anh | GDCD | C.Nghe | Tin | KHTN | LS-DL | GDTC | NgheThuat | HDTN | GDDP
+        // C. Nghệ & Nghệ thuật luôn = "Chưa cập nhật"
+        // Bùi Khánh Ly (dòng 21): GDCD = "Chưa cập nhật", C.Nghệ = "Chưa cập nhật"
+        // Ngô Mạnh Cường: HĐTN = "CĐ" (không phải GDTC)
+        const RAW = [
+            { ho:"Trần Mai",          ten:"Anh",    dob:"15/10/2015", toan:8.5, van:9.5, anh:5,   gdcd:7.5, cnghe:"Chưa cập nhật", tin:6,   khtn:7.5, lsdl:8.5, gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Trần Hồng",         ten:"Cẩm",    dob:"10/12/2015", toan:7,   van:6,   anh:3,   gdcd:8.5, cnghe:"Chưa cập nhật", tin:6.5, khtn:7,   lsdl:5,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Quỳnh",         ten:"Chi",    dob:"31/01/2015", toan:9.5, van:8.5, anh:7,   gdcd:10,  cnghe:"Chưa cập nhật", tin:10,  khtn:9.5, lsdl:8.5, gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Đặng Phương",       ten:"Chi",    dob:"03/02/2015", toan:8.5, van:9.5, anh:6.5, gdcd:9.5, cnghe:"Chưa cập nhật", tin:10,  khtn:9.5, lsdl:8,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Thị",        ten:"Chi",    dob:"21/01/2015", toan:9.5, van:9,   anh:8,   gdcd:9.5, cnghe:"Chưa cập nhật", tin:10,  khtn:9.5, lsdl:9,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Trần Nguyên",       ten:"Chi",    dob:"27/05/2015", toan:9.5, van:8,   anh:7,   gdcd:9,   cnghe:"Chưa cập nhật", tin:10,  khtn:9,   lsdl:9,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Ngô Mạnh",          ten:"Cường",  dob:"27/11/2015", toan:7.5, van:7.5, anh:3,   gdcd:7,   cnghe:"Chưa cập nhật", tin:5,   khtn:5.5, lsdl:5,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"CĐ", gddp:"Đ" },
+            { ho:"Bùi Hiền",          ten:"Dịu",    dob:"20/02/2015", toan:6.5, van:8.5, anh:6.5, gdcd:8.5, cnghe:"Chưa cập nhật", tin:9.5, khtn:9.5, lsdl:9,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Thùy",       ten:"Dung",   dob:"11/07/2015", toan:6.5, van:8.5, anh:6,   gdcd:9,   cnghe:"Chưa cập nhật", tin:9,   khtn:10,  lsdl:9,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Trần Đức",          ten:"Duy",    dob:"06/07/2015", toan:9.5, van:8,   anh:5,   gdcd:8,   cnghe:"Chưa cập nhật", tin:9.5, khtn:9.5, lsdl:8.5, gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Thành",      ten:"Đạt",    dob:"11/01/2015", toan:9.5, van:8,   anh:8.5, gdcd:8.5, cnghe:"Chưa cập nhật", tin:10,  khtn:10,  lsdl:9,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Đức",           ten:"Hiếu",   dob:"13/05/2015", toan:7.5, van:6,   anh:2,   gdcd:5.5, cnghe:"Chưa cập nhật", tin:5,   khtn:6.5, lsdl:4.5, gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Trung",      ten:"Hiếu",   dob:"11/05/2015", toan:9,   van:7,   anh:3.5, gdcd:7,   cnghe:"Chưa cập nhật", tin:6,   khtn:6.5, lsdl:6,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Minh",          ten:"Hòa",    dob:"01/01/2015", toan:"Miễn", van:"Miễn", anh:"Miễn", gdcd:"Miễn", cnghe:"Miễn", tin:"Miễn", khtn:"Miễn", lsdl:"Miễn", gdtc:"Miễn", nghethuat:"Miễn", hdtn:"Miễn", gddp:"Miễn" },
+            { ho:"Nguyễn Thái",       ten:"Hòa",    dob:"06/01/2015", toan:8,   van:7,   anh:5,   gdcd:7.5, cnghe:"Chưa cập nhật", tin:9.5, khtn:7,   lsdl:6,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Lê Huy",            ten:"Hoàng",  dob:"05/08/2015", toan:9,   van:8,   anh:2.5, gdcd:8.5, cnghe:"Chưa cập nhật", tin:8,   khtn:8.5, lsdl:6.5, gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Ngọc",       ten:"Hùng",   dob:"06/07/2015", toan:9,   van:8,   anh:6.5, gdcd:7.5, cnghe:"Chưa cập nhật", tin:9,   khtn:9,   lsdl:9,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Đức",           ten:"Khánh",  dob:"14/11/2015", toan:5,   van:6,   anh:3.5, gdcd:8,   cnghe:"Chưa cập nhật", tin:7,   khtn:8.5, lsdl:5,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Hoàng Ngọc", ten:"Khánh",  dob:"17/03/2015", toan:4.5, van:7,   anh:3,   gdcd:8,   cnghe:"Chưa cập nhật", tin:8.5, khtn:9.5, lsdl:8,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Hoàng Khánh",       ten:"Long",   dob:"30/01/2015", toan:9,   van:7.5, anh:8.5, gdcd:9,   cnghe:"Chưa cập nhật", tin:9.5, khtn:9.5, lsdl:8.5, gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            // Dòng 21: Bùi Khánh Ly — GDCD = "Chưa cập nhật", C.Nghệ = "Chưa cập nhật", Tin=9, KHTN=8.5, LS-ĐL=7
+            { ho:"Bùi Khánh",         ten:"Ly",     dob:"15/04/2015", toan:8,   van:8.5, anh:7,   gdcd:"Chưa cập nhật", cnghe:"Chưa cập nhật", tin:9, khtn:8.5, lsdl:7, gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ", gddp:"Đ" },
+            { ho:"Đỗ Anh",            ten:"Minh",   dob:"20/02/2015", toan:7,   van:6.5, anh:3,   gdcd:7.5, cnghe:"Chưa cập nhật", tin:6,   khtn:7.5, lsdl:7,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Hà Trần",           ten:"Minh",   dob:"15/09/2015", toan:3,   van:5.5, anh:6,   gdcd:6.5, cnghe:"Chưa cập nhật", tin:9,   khtn:9,   lsdl:7,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Hoàng Hải",  ten:"Nam",    dob:"06/03/2015", toan:8.5, van:7.5, anh:7,   gdcd:8.5, cnghe:"Chưa cập nhật", tin:10,  khtn:9,   lsdl:7.5, gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Trần Đức",          ten:"Nam",    dob:"15/08/2015", toan:8.5, van:6,   anh:6,   gdcd:8,   cnghe:"Chưa cập nhật", tin:8,   khtn:8.5, lsdl:6.5, gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Trung",         ten:"Nghĩa",  dob:"01/04/2015", toan:2.5, van:4.5, anh:2,   gdcd:6.5, cnghe:"Chưa cập nhật", tin:5.5, khtn:7,   lsdl:6,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Thị Bảo",    ten:"Ngọc",   dob:"29/04/2015", toan:7.5, van:5.5, anh:6,   gdcd:7.5, cnghe:"Chưa cập nhật", tin:9,   khtn:9.5, lsdl:7,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Ngọc",          ten:"Nhi",    dob:"25/08/2015", toan:6.5, van:8.5, anh:3,   gdcd:8.5, cnghe:"Chưa cập nhật", tin:8.5, khtn:7.5, lsdl:9,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Mai Dy",        ten:"Niên",   dob:"03/11/2015", toan:9.5, van:8,   anh:4,   gdcd:8.5, cnghe:"Chưa cập nhật", tin:9,   khtn:8,   lsdl:7,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Trần Minh",         ten:"Phương", dob:"09/06/2015", toan:6,   van:6,   anh:5.5, gdcd:7.5, cnghe:"Chưa cập nhật", tin:7,   khtn:6.5, lsdl:6,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Trần Đại",          ten:"Quang",  dob:"23/05/2015", toan:8,   van:6,   anh:3,   gdcd:7.5, cnghe:"Chưa cập nhật", tin:5,   khtn:3.5, lsdl:4,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Thị Lệ",     ten:"Quyên",  dob:"13/02/2015", toan:9.5, van:7.5, anh:3,   gdcd:9,   cnghe:"Chưa cập nhật", tin:8,   khtn:8.5, lsdl:8,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Trần Diễm",         ten:"Quỳnh",  dob:"18/07/2015", toan:8.5, van:8,   anh:2,   gdcd:7.5, cnghe:"Chưa cập nhật", tin:9,   khtn:8.5, lsdl:7,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Nguyễn Tuệ",    ten:"Sam",    dob:"30/01/2015", toan:10,  van:7,   anh:5,   gdcd:10,  cnghe:"Chưa cập nhật", tin:9,   khtn:9,   lsdl:7,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Lê Tiến",           ten:"Tài",    dob:"16/01/2015", toan:10,  van:7.5, anh:7.5, gdcd:9,   cnghe:"Chưa cập nhật", tin:8.5, khtn:9,   lsdl:9,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Nguyễn Trung",      ten:"Thành",  dob:"11/05/2015", toan:9,   van:8,   anh:4.5, gdcd:7.5, cnghe:"Chưa cập nhật", tin:8,   khtn:6.5, lsdl:7,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Trần Đức",          ten:"Thắng",  dob:"04/01/2015", toan:9.5, van:7.5, anh:7.5, gdcd:9,   cnghe:"Chưa cập nhật", tin:9,   khtn:7,   lsdl:7,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Gia",           ten:"Thịnh",  dob:"04/04/2015", toan:9,   van:6,   anh:4,   gdcd:8,   cnghe:"Chưa cập nhật", tin:7.5, khtn:7,   lsdl:6,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Bùi Đức",           ten:"Tiến",   dob:"04/09/2015", toan:8.5, van:6,   anh:4.5, gdcd:7,   cnghe:"Chưa cập nhật", tin:8.5, khtn:6.5, lsdl:6,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" },
+            { ho:"Ngô Xuân",          ten:"Tùng",   dob:"18/03/2015", toan:8.5, van:6,   anh:4,   gdcd:7.5, cnghe:"Chưa cập nhật", tin:5,   khtn:5.5, lsdl:7,   gdtc:"Đ", nghethuat:"Chưa cập nhật", hdtn:"Đ",  gddp:"Đ" }
+        ];
+
+        // ===== TÍNH XẾP HẠNG TỰ ĐỘNG =====
+        // Xếp hạng cho 7 môn có điểm số: Toán, Văn, Anh, GDCD, Tin, KHTN, LS-ĐL
+        // (Bỏ qua các giá trị "Chưa cập nhật", "Miễn", null)
+        const RANK_FIELDS = [
+            { key: 'toan', rankKey: 'toanRank' },
+            { key: 'van',  rankKey: 'vanRank'  },
+            { key: 'anh',  rankKey: 'anhRank'  },
+            { key: 'gdcd', rankKey: 'gdcdRank' },
+            { key: 'tin',  rankKey: 'tinRank'  },
+            { key: 'khtn', rankKey: 'khtnRank' },
+            { key: 'lsdl', rankKey: 'lsdlRank' }
+        ];
+
+        function computeRanks() {
+            RANK_FIELDS.forEach(f => {
+                const valid = RAW.filter(s => typeof s[f.key] === 'number');
+                const sorted = [...valid].sort((a,b) => b[f.key] - a[f.key]);
+                let lastScore = null, lastRank = 0;
+                sorted.forEach((s, idx) => {
+                    if (s[f.key] !== lastScore) {
+                        lastRank = idx + 1;
+                        lastScore = s[f.key];
+                    }
+                    s[f.rankKey] = lastRank;
+                });
+                RAW.forEach(s => {
+                    if (typeof s[f.key] !== 'number') s[f.rankKey] = null;
+                });
+            });
+        }
+        computeRanks();
+
+        const $ = id => document.getElementById(id);
+
+        function showToast(msg, type = 'info') {
+            const t = $('toast');
+            t.textContent = msg;
+            t.className = 'toast ' + type + ' show';
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function parseDOB(raw) {
+            const s = raw.trim();
+            if (!s) return null;
+            let d, m, y;
+            const withSep = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+            if (withSep) { [, d, m, y] = withSep; }
+            else if (/^\d{8}$/.test(s)) { d = s.slice(0,2); m = s.slice(2,4); y = s.slice(4,8); }
+            else if (/^\d{7}$/.test(s)) { d = s.slice(0,1); m = s.slice(1,3); y = s.slice(3,7); }
+            else return { invalid: true };
+
+            const dd = d.padStart(2,'0');
+            const mm = m.padStart(2,'0');
+            const yyyy = y;
+            const ddNum = parseInt(dd,10), mmNum = parseInt(mm,10), yyyyNum = parseInt(yyyy,10);
+            if (mmNum < 1 || mmNum > 12) return { invalid: true };
+            if (yyyyNum < 1900 || yyyyNum > 2100) return { invalid: true };
+            const test = new Date(yyyyNum, mmNum - 1, ddNum);
+            if (test.getFullYear() !== yyyyNum || test.getMonth() !== mmNum - 1 || test.getDate() !== ddNum) return { invalid: true };
+            return { iso: `${yyyy}-${mm}-${dd}`, display: `${dd}/${mm}/${yyyy}` };
+        }
+
+        function fmtScore(v) {
+            if (v === null || v === undefined || v === '') return { text: '—', cls: 'empty' };
+            if (v === 'Miễn') return { text: 'Miễn', cls: 'mien' };
+            if (v === 'Chưa cập nhật') return { text: 'Chưa cập nhật', cls: 'chuacapnhat' };
+            if (v === 'Đ') return { text: 'Đ', cls: 'dat' };
+            if (v === 'CĐ') return { text: 'CĐ', cls: 'cd' };
+            return { text: v, cls: '' };
+        }
+
+        function rankBadge(rank) {
+            if (rank === null || rank === undefined) return `<span class="rank empty">—</span>`;
+            return `<span class="rank">Hạng ${rank} / ${TOTAL}</span>`;
+        }
+
+        function renderResult(students, dobDisplay) {
+            const area = $('resultArea');
+            area.classList.add('show');
+
+            if (students.length === 0) {
+                area.innerHTML = `
+                    <div class="not-found">
+                        ❌ Không tìm thấy học sinh có ngày sinh<br>
+                        <strong>${dobDisplay}</strong><br>
+                        <span style="font-weight:400;font-size:12px;display:block;margin-top:6px;">
+                            Vui lòng kiểm tra lại ngày tháng năm sinh.
+                        </span>
+                    </div>`;
+                return;
+            }
+
+            let html = '';
+            students.forEach(s => {
+                const fullname = `${s.ho} ${s.ten}`;
+
+                const card = (label, val, rank) => {
+                    const f = fmtScore(val);
+                    return `<div class="score-card">
+                        <div class="subject">${label}</div>
+                        <div class="score ${f.cls}">${f.text}</div>
+                        ${rank !== undefined ? rankBadge(rank) : ''}
+                    </div>`;
+                };
+                const ev = (label, val) => {
+                    const f = fmtScore(val);
+                    return `<div class="eval-item">
+                        <div class="subject">${label}</div>
+                        <div class="value ${f.cls}">${f.text}</div>
+                    </div>`;
+                };
+
+                html += `
+                    <div class="student-info">
+                        <div class="label-small">Họ và tên học sinh</div>
+                        <div class="fullname">${fullname}</div>
+                        <div class="dob-line">Ngày sinh: ${s.dob}</div>
+                    </div>
+
+                    <div class="section-title">📊 Điểm & xếp hạng các môn có điểm số (trên ${TOTAL} HS)</div>
+                    <div class="score-grid">
+                        ${card('Toán', s.toan, s.toanRank)}
+                        ${card('Ngữ văn', s.van, s.vanRank)}
+                        ${card('Ngoại ngữ 1', s.anh, s.anhRank)}
+                        ${card('GDCD', s.gdcd, s.gdcdRank)}
+                        ${card('C. Nghệ', s.cnghe)}
+                        ${card('Tin học', s.tin, s.tinRank)}
+                        ${card('KHTN', s.khtn, s.khtnRank)}
+                        ${card('LS-ĐL', s.lsdl, s.lsdlRank)}
+                    </div>
+
+                    <div class="eval-title">✅ Đánh giá các môn còn lại</div>
+                    <div class="eval-grid">
+                        ${ev('GDTC', s.gdtc)}
+                        ${ev('Nghệ thuật', s.nghethuat)}
+                        ${ev('HĐTN', s.hdtn)}
+                        ${ev('GDĐP', s.gddp)}
+                    </div>
+                `;
+            });
+
+            area.innerHTML = html;
+        }
+
+        $('searchForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const input = $('dobInput');
+            const raw = input.value.trim();
+            if (!raw) {
+                showToast('⚠️ Vui lòng nhập ngày tháng năm sinh!', 'error');
+                input.classList.add('invalid'); input.focus(); return;
+            }
+            const dob = parseDOB(raw);
+            if (!dob) {
+                showToast('⚠️ Vui lòng nhập ngày tháng năm sinh!', 'error');
+                input.classList.add('invalid'); input.focus(); return;
+            }
+            if (dob.invalid) {
+                showToast('⚠️ Ngày sinh không hợp lệ. Vui lòng kiểm tra lại!', 'error');
+                input.classList.add('invalid'); input.focus(); return;
+            }
+            input.classList.remove('invalid');
+
+            const matches = RAW.filter(s => {
+                const [d, m, y] = s.dob.split('/');
+                return `${y}-${m}-${d}` === dob.iso;
+            });
+
+            if (matches.length === 0) showToast('❌ Không tìm thấy học sinh với ngày sinh này', 'error');
+            else if (matches.length === 1) showToast('✅ Đã tìm thấy kết quả!', 'success');
+            else showToast(`ℹ️ Có ${matches.length} học sinh cùng ngày sinh`, 'info');
+
+            renderResult(matches, dob.display);
+        });
+
+        $('dobInput').addEventListener('input', () => {
+            $('dobInput').classList.remove('invalid');
+            $('resultArea').classList.remove('show');
+            $('resultArea').innerHTML = '';
+        });
+    </script>
+</body>
+</html>
